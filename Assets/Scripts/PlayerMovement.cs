@@ -2,14 +2,18 @@ using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
 {
-    public float moveSpeed = 5f;
-    public float sprintSpeed = 15f;
-    public float jumpHeight = 3f;
-    public float gravity = -9.81f;
+    public float moveSpeed = 5f;        // Звичайна швидкість руху
+    public float sprintSpeed = 10f;      // Швидкість при спринті
+    public float jumpHeight = 2f;       // Висота стрибка
+    public float gravity = -9.8f;       // Гравітація
 
+    private float currentSpeed;         // Поточна швидкість руху
+    private bool isGrounded;            // Чи на землі гравець
+
+    private Vector3 velocity;           // Для зберігання руху по вертикалі (стрибок + гравітація)
     private CharacterController controller;
-    private Vector3 velocity;
-    private bool isGrounded;
+
+    public Transform cameraTransform;   // Камера персонажа
 
     void Start()
     {
@@ -18,35 +22,47 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        // Перевіряємо, чи на землі
+        // Перевірка, чи на землі гравець
         isGrounded = controller.isGrounded;
-        if (isGrounded && velocity.y < 0)
-        {
-            velocity.y = -2f; // щоб тримався на землі
-        }
 
-        // Отримуємо введення
-        float moveX = Input.GetAxis("Horizontal");
-        float moveZ = Input.GetAxis("Vertical");
+        // Вибір швидкості руху (нормальний рух чи спринт)
+        currentSpeed = (Input.GetKey(KeyCode.LeftShift)) ? sprintSpeed : moveSpeed;
 
-        // Обчислюємо напрямок руху
-        Vector3 move = transform.right * moveX + transform.forward * moveZ;
+        // Отримуємо ввід з клавіатури (WASD)
+        float horizontal = Input.GetAxis("Horizontal");
+        float vertical = Input.GetAxis("Vertical");
 
-        // Біг
-        float currentSpeed = Input.GetKey(KeyCode.LeftShift) ? sprintSpeed : moveSpeed;
+        // Рух відносно напрямку камери
+        Vector3 move = cameraTransform.forward * vertical + cameraTransform.right * horizontal;
+        move.y = 0f; // не даємо рухатись вверх-вниз
 
-        // Рухаємо гравця
-        controller.Move(move * currentSpeed * Time.deltaTime);
-
-        // Стрибок
+        // Стрибок (якщо персонаж на землі)
         if (Input.GetButtonDown("Jump") && isGrounded)
         {
-            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);
+            velocity.y = Mathf.Sqrt(jumpHeight * -2f * gravity);  // Вираховуємо силу стрибка
         }
 
-        // Гравітація
-        velocity.y += gravity * Time.deltaTime;
+        // Якщо персонаж не на землі, застосовуємо гравітацію
+        if (!isGrounded)
+        {
+            velocity.y += gravity * Time.deltaTime;
+        }
+        else
+        {
+            // Якщо на землі, скидаємо вертикальну швидкість
+            if (velocity.y < 0)
+            {
+                velocity.y = -2f;  // Легкий негатив для швидкого "прилипання" до землі
+            }
+        }
+
+        // Рух по горизонталі
+        controller.Move(move.normalized * currentSpeed * Time.deltaTime);
+
+        // Рух по вертикалі (стрибок і гравітація)
         controller.Move(velocity * Time.deltaTime);
     }
 }
+
+
 
