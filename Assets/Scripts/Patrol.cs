@@ -2,38 +2,60 @@ using UnityEngine;
 
 public class Patrol : MonoBehaviour
 {
-    public Transform[] patrolPoints;  // Массив точок патрулювання
-    public float speed = 2f;          // Швидкість руху
-    public float waitTime = 1f;       // Час зупинки на точці патрулювання
+    public Transform[] patrolPoints;
+    public float speed = 2f;
+    public float waitTime = 1f;
+    public float rotationSpeed = 5f;
 
-    private int currentPointIndex = 0;  // Поточна точка патрулювання
-    private bool isWaiting = false;     // Чи чекає об'єкт на точці?
+    private int currentPointIndex = 0;
+    private bool isWaiting = false;
 
     void Update()
     {
         if (patrolPoints.Length == 0)
             return;
 
-        // Якщо об'єкт на точці патрулювання
         if (!isWaiting)
         {
-            // Переміщаємось до поточної точки
-            transform.position = Vector3.MoveTowards(transform.position, patrolPoints[currentPointIndex].position, speed * Time.deltaTime);
+            Transform targetPoint = patrolPoints[currentPointIndex];
 
-            // Якщо ми досягли точки
-            if (transform.position == patrolPoints[currentPointIndex].position)
+            // Напрямок до точки
+            Vector3 direction = (targetPoint.position - transform.position).normalized;
+
+            // Прибираємо нахил вверх/вниз
+            direction.y = 0;
+
+            // Поворот до точки
+            if (direction != Vector3.zero)
+            {
+                Quaternion lookRotation = Quaternion.LookRotation(direction);
+
+                transform.rotation = Quaternion.Slerp(
+                    transform.rotation,
+                    lookRotation,
+                    rotationSpeed * Time.deltaTime
+                );
+            }
+
+            // Рух до точки
+            transform.position = Vector3.MoveTowards(
+                transform.position,
+                targetPoint.position,
+                speed * Time.deltaTime
+            );
+
+            // Досягли точки
+            if (Vector3.Distance(transform.position, targetPoint.position) < 0.1f)
             {
                 isWaiting = true;
-                Invoke("NextPoint", waitTime);  // Чекаємо перед переходом до наступної точки
+                Invoke(nameof(NextPoint), waitTime);
             }
         }
     }
 
-    // Функція для переходу до наступної точки патрулювання
     void NextPoint()
     {
-        currentPointIndex = (currentPointIndex + 1) % patrolPoints.Length;  // Переміщаємось до наступної точки
-        isWaiting = false;  // Відновлюємо рух
+        currentPointIndex = (currentPointIndex + 1) % patrolPoints.Length;
+        isWaiting = false;
     }
 }
-

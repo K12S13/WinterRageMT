@@ -5,39 +5,55 @@ public class CameraMove : MonoBehaviour
     public float sensitivityX = 2f;
     public float sensitivityY = 2f;
     public float clampAngle = 80f;
-    
-    private float rotX = 0f;
+
     private float rotY = 0f;
-    public PlayerMovement UI;
+
+    private PlayerMovement playerMovement;
 
     void Start()
     {
-        Cursor.lockState = CursorLockMode.Locked;  // ховаємо і блокуюємо курсор
-        Cursor.visible = false;                     // ховаємо курсор (додано)
+        GameObject player = GameObject.Find("Player");
+        playerMovement = player.GetComponent<PlayerMovement>();
+
+        LockCursor();
     }
-    
+
     void Update()
     {
-        //if (UI.IsGameOver == false)
-        //{ 
+        bool isGameEnded =
+            playerMovement.gameOverPanel.activeSelf ||
+            playerMovement.winPanel.activeSelf;
+
+        if (isGameEnded)
+        {
+            UnlockCursor();
+            return;
+        }
+
+        LockCursor();
+
         float mouseX = Input.GetAxis("Mouse X") * sensitivityX;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivityY;
 
-         // Ротація по осі X (горизонтально)
+        // Поворот гравця
         transform.parent.Rotate(Vector3.up * mouseX);
 
-            // Обмежуємо ротацію по осі Y (вертикально)
+        // Поворот камери
         rotY -= mouseY;
         rotY = Mathf.Clamp(rotY, -clampAngle, clampAngle);
 
-        // Обертання камери по осі Y
         transform.localRotation = Quaternion.Euler(rotY, 0, 0);
-        //}
     }
-      
+
+    void LockCursor()
+    {
+        Cursor.lockState = CursorLockMode.Locked;
+        Cursor.visible = false;
+    }
+
+    void UnlockCursor()
+    {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+    }
 }
-
-
-    
-
-
