@@ -18,6 +18,7 @@ public class PlayerMovement : MonoBehaviour
     public  GameObject gameOverPanel;
     public  GameObject winPanel;
     public bool IsGameOver;
+    private Gun state;
 
     void Start()
     {
@@ -57,22 +58,28 @@ public class PlayerMovement : MonoBehaviour
     }
     private void OnTriggerEnter(Collider collider)
     {
-        // Перевіряємо, чи інший об'єкт має тег "Area"
-        if (collider.gameObject.CompareTag("DeathArea"))
+        if (collider.CompareTag("DeathArea"))
         {
             gameOverPanel.SetActive(true);
-            Time.timeScale = 0;
-            //IsGameOver == true;
+            Time.timeScale = 0f;
             Debug.Log("GameOver");
-            // Тут можна додати будь-яку логіку при зіткненні
         }
-        else if (collider.gameObject.CompareTag("Chest"))
+        else if (collider.CompareTag("Chest"))
         {
             winPanel.SetActive(true);
-            Time.timeScale = 0;
-            //IsGameOver == true;
+            Time.timeScale = 0f;
             Debug.Log("You win");
-            // Тут можна додати будь-яку логіку при зіткненні
+        }
+        else if (collider.CompareTag("Bullet"))
+        {
+            Bullet bullet = collider.GetComponent<Bullet>();
+
+            if (bullet != null && bullet.isPlayerBullet == false)
+            {
+                gameOverPanel.SetActive(true);
+                Time.timeScale = 0f;
+                Debug.Log("GameOver");
+            }
         }
     }
 }

@@ -35,10 +35,8 @@ public class CameraMove : MonoBehaviour
         float mouseX = Input.GetAxis("Mouse X") * sensitivityX;
         float mouseY = Input.GetAxis("Mouse Y") * sensitivityY;
 
-        // Поворот гравця
         transform.parent.Rotate(Vector3.up * mouseX);
 
-        // Поворот камери
         rotY -= mouseY;
         rotY = Mathf.Clamp(rotY, -clampAngle, clampAngle);
 
